@@ -45,7 +45,7 @@ npx vitest run src/path/to/file.test.tsx
 
 ### Database
 
-SQLite via Prisma. Schema: `User` (email + bcrypt password) → many `Project` (name, messages JSON, data JSON). Run `npx prisma studio` to inspect.
+SQLite via Prisma. Schema defined in `prisma/schema.prisma`: `User` (email + bcrypt password) → many `Project` (name, messages JSON, data JSON). Run `npx prisma studio` to inspect.
 
 ### Key Path Aliases
 
