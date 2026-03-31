@@ -65,7 +65,7 @@ test("MessageList renders messages with parts", () => {
           type: "tool-invocation",
           toolInvocation: {
             toolCallId: "asdf",
-            args: {},
+            args: { command: "create", path: "/App.jsx" },
             toolName: "str_replace_editor",
             state: "result",
             result: "Success",
@@ -78,7 +78,81 @@ test("MessageList renders messages with parts", () => {
   render(<MessageList messages={messages} />);
 
   expect(screen.getByText("Creating your component...")).toBeDefined();
-  expect(screen.getByText("str_replace_editor")).toBeDefined();
+  expect(screen.getByText("Creating App.jsx")).toBeDefined();
+});
+
+test("MessageList shows friendly label for str_replace_editor create", () => {
+  const messages: Message[] = [{
+    id: "1", role: "assistant", content: "",
+    parts: [{ type: "tool-invocation", toolInvocation: {
+      toolCallId: "1", toolName: "str_replace_editor", state: "result", result: "ok",
+      args: { command: "create", path: "/components/Button.tsx" },
+    }}],
+  }];
+  render(<MessageList messages={messages} />);
+  expect(screen.getByText("Creating Button.tsx")).toBeDefined();
+});
+
+test("MessageList shows friendly label for str_replace_editor str_replace", () => {
+  const messages: Message[] = [{
+    id: "1", role: "assistant", content: "",
+    parts: [{ type: "tool-invocation", toolInvocation: {
+      toolCallId: "1", toolName: "str_replace_editor", state: "result", result: "ok",
+      args: { command: "str_replace", path: "/App.jsx" },
+    }}],
+  }];
+  render(<MessageList messages={messages} />);
+  expect(screen.getByText("Editing App.jsx")).toBeDefined();
+});
+
+test("MessageList shows friendly label for str_replace_editor view", () => {
+  const messages: Message[] = [{
+    id: "1", role: "assistant", content: "",
+    parts: [{ type: "tool-invocation", toolInvocation: {
+      toolCallId: "1", toolName: "str_replace_editor", state: "result", result: "ok",
+      args: { command: "view", path: "/App.jsx" },
+    }}],
+  }];
+  render(<MessageList messages={messages} />);
+  expect(screen.getByText("Reading App.jsx")).toBeDefined();
+});
+
+test("MessageList shows friendly label for file_manager delete", () => {
+  const messages: Message[] = [{
+    id: "1", role: "assistant", content: "",
+    parts: [{ type: "tool-invocation", toolInvocation: {
+      toolCallId: "1", toolName: "file_manager", state: "result", result: "ok",
+      args: { command: "delete", path: "/components/Old.jsx" },
+    }}],
+  }];
+  render(<MessageList messages={messages} />);
+  expect(screen.getByText("Deleting Old.jsx")).toBeDefined();
+});
+
+test("MessageList shows friendly label for file_manager rename", () => {
+  const messages: Message[] = [{
+    id: "1", role: "assistant", content: "",
+    parts: [{ type: "tool-invocation", toolInvocation: {
+      toolCallId: "1", toolName: "file_manager", state: "result", result: "ok",
+      args: { command: "rename", path: "/Button.jsx", new_path: "/components/Button.jsx" },
+    }}],
+  }];
+  render(<MessageList messages={messages} />);
+  expect(screen.getByText("Renaming Button.jsx → Button.jsx")).toBeDefined();
+});
+
+test("MessageList shows spinner for in-progress tool invocation", () => {
+  const messages: Message[] = [{
+    id: "1", role: "assistant", content: "",
+    parts: [{ type: "tool-invocation", toolInvocation: {
+      toolCallId: "1", toolName: "str_replace_editor", state: "call",
+      args: { command: "create", path: "/App.jsx" },
+    }}],
+  }];
+  const { container } = render(<MessageList messages={messages} />);
+  expect(screen.getByText("Creating App.jsx")).toBeDefined();
+  // Spinner should be present for in-progress state
+  expect(container.querySelector(".animate-spin")).toBeDefined();
 });
 
 test("MessageList shows content for assistant message with content", () => {
