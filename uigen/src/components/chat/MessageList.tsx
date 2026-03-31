@@ -5,6 +5,27 @@ import { cn } from "@/lib/utils";
 import { User, Bot, Loader2 } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
+function getToolLabel(toolName: string, args: Record<string, unknown>): string {
+  const filename = (args.path as string)?.split("/").pop() ?? args.path;
+  if (toolName === "str_replace_editor") {
+    switch (args.command) {
+      case "create":   return `Creating ${filename}`;
+      case "str_replace": return `Editing ${filename}`;
+      case "insert":   return `Inserting into ${filename}`;
+      case "view":     return `Reading ${filename}`;
+      case "undo_edit": return `Undoing edit in ${filename}`;
+    }
+  }
+  if (toolName === "file_manager") {
+    const newFilename = (args.new_path as string)?.split("/").pop();
+    switch (args.command) {
+      case "delete": return `Deleting ${filename}`;
+      case "rename": return `Renaming ${filename} → ${newFilename}`;
+    }
+  }
+  return toolName;
+}
+
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
@@ -76,17 +97,18 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                             );
                           case "tool-invocation":
                             const tool = part.toolInvocation;
+                            const label = getToolLabel(tool.toolName, (tool.args ?? {}) as Record<string, unknown>);
                             return (
-                              <div key={partIndex} className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-neutral-50 rounded-lg text-xs font-mono border border-neutral-200">
+                              <div key={partIndex} className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-neutral-50 rounded-lg text-xs border border-neutral-200">
                                 {tool.state === "result" && tool.result ? (
                                   <>
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                    <span className="text-neutral-700">{tool.toolName}</span>
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                                    <span className="text-neutral-700">{label}</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                                    <span className="text-neutral-700">{tool.toolName}</span>
+                                    <Loader2 className="w-3 h-3 animate-spin text-blue-600 flex-shrink-0" />
+                                    <span className="text-neutral-700">{label}</span>
                                   </>
                                 )}
                               </div>
