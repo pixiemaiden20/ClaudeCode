@@ -68,11 +68,19 @@ The generation prompt lives in `lib/prompts/generation.tsx`. It enforces Tailwin
 
 ### Auth
 
-JWT sessions via `jose` (`lib/auth.ts`). Server-only. Passwords hashed with `bcrypt`. Cookies are HttpOnly + Secure, 7-day expiry.
+JWT sessions via `jose` (`lib/auth.ts`). Server-only. Passwords hashed with `bcrypt`. Cookies are HttpOnly + Secure, 7-day expiry. Cookie name: `auth-token`. JWT secret from `JWT_SECRET` env var, falls back to `"development-secret-key"`. Password minimum: 8 characters.
+
+Server actions in `lib/actions/` (`signUp`, `signIn`, `signOut`, `getUser`, `createProject`, `getProject`, `getProjects`) all return `{ success: boolean, error?: string }`. Middleware (`middleware.ts`) protects `/api/projects` and `/api/filesystem` routes.
 
 ### Database
 
-Prisma + SQLite. Schema: `User` (email/password) → `Project` (name, messages JSON, data JSON). Run `npx prisma studio` to inspect.
+Prisma + SQLite. Schema: `User` (email/password) → `Project` (name, userId?, messages JSON string, data JSON string). Messages and data are stored as **stringified JSON**. Run `npx prisma studio` to inspect.
+
+### Data persistence
+
+- **Unauthenticated**: work lives only in sessionStorage (`uigen_has_anon_work`, `uigen_anon_data`) — lost on page close.
+- **Authenticated**: saved to SQLite via `onFinish` in the chat route when `projectId` is present.
+- On sign-in/sign-up, anonymous work is automatically migrated to a new project then cleared from sessionStorage.
 
 ### Preview rendering
 
@@ -97,3 +105,7 @@ Prisma + SQLite. Schema: `User` (email/password) → `Project` (name, messages J
 - Right top/bottom toggle: `PreviewFrame` | (`FileTree` + `CodeEditor`)
 
 UI components come from shadcn/ui (Radix primitives + Tailwind), code editor is Monaco.
+
+### Testing
+
+Vitest with jsdom environment. Tests live in `__tests__/` subdirectories next to the code they test. Key test files: `lib/file-system.test.ts`, `lib/transform/jsx-transformer.test.ts`, `components/**/__tests__/`. Run a single test file with `npx vitest path/to/test.ts`.
